@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdio.h>
 #include "BTree.h"
 #include "BTreeNode.h"
 
@@ -48,6 +49,32 @@ void BTree_destroy(BTree *tree)
 void BTree_printPreOrder(BTree *tree)
 {
     BTreeNode_printPreOrder(tree->root, 0);
+}
+
+void BTree_printLevelOrder(BTree *tree)
+{
+    Queue *nodes = BTree_getNodes(tree);
+    int level = 0;
+    while (!Queue_isEmpty(nodes))
+    {
+        
+        BTreeNode *node;
+        Queue_dequeue(nodes, &node);
+        if (BTreeNode_getLevel(node) > level)
+        {
+            level++;
+            printf("\n");
+        }
+        
+        const int *keys = BTreeNode_getKeys(node);
+        for (int i = 0; i < BTreeNode_getNumKeys(node); i++)
+        {
+            if (i == 0) printf("[");
+            printf("key: %d, ", keys[i]);
+            if (i == BTreeNode_getNumKeys(node) - 1) printf("l=%d]", BTreeNode_getLevel(node));
+        }
+    }
+    printf("\n");
 }
 
 Queue* BTree_getNodes(BTree* tree)

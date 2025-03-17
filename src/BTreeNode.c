@@ -38,9 +38,9 @@ BTreeNode *BTreeNode_create(int order, bool isLeaf)
     BTreeNode *node = (BTreeNode *)malloc(sizeof(BTreeNode));
     node->order = order;
     node->numKeys = 0;
-    node->keys = (int *)malloc(sizeof(int) * (2 * order - 1));
-    node->values = (int *)malloc(sizeof(int) * (2 * order - 1));
-    node->children = (BTreeNode **)malloc(sizeof(BTreeNode *) * (2 * order));
+    node->keys = (int *)malloc((order - 1) * sizeof(int));
+    node->values = (int *)malloc((order - 1) * sizeof(int));
+    node->children = (BTreeNode **)malloc(order * sizeof(BTreeNode *));
     node->isLeaf = isLeaf;
     node->level = 0;
 
@@ -80,7 +80,7 @@ BTreeNode* BTreeNode_insert(BTreeNode* node, int key, int value)
     if (BTreeNode_isFull(node))
     {
         BTreeNode *newRoot = BTreeNode_create(node->order, false);
-        BTreeNode_setChildAt(newRoot, 0, node);
+        newRoot->children[0] = node;
         BTreeNode_splitChild(newRoot, 0, node);
         BTreeNode_insertNonFull(newRoot, key, value);
         BTreeNode_updateLevels(newRoot, 0);
@@ -183,6 +183,11 @@ const int* BTreeNode_getValues(BTreeNode* node)
     return node->values;
 }
 
+const int* BTreeNode_getKeys(BTreeNode* node)
+{
+    return node->keys;
+}
+
 bool BTreeNode_isLeaf(BTreeNode *node)
 {
     return node->isLeaf;
@@ -190,7 +195,7 @@ bool BTreeNode_isLeaf(BTreeNode *node)
 
 bool BTreeNode_isFull(BTreeNode *node)
 {
-    return node->numKeys == 2 * node->order - 1;
+    return node->numKeys == node->order - 1;
 }
 
 BTreeNode *BTreeNode_setChildAt(BTreeNode *node, int i, BTreeNode *child)
@@ -236,33 +241,38 @@ void BTreeNode_insertNonFull(BTreeNode *node, int key, int value)
 
 void BTreeNode_splitChild(BTreeNode *parent, int i, BTreeNode *child)
 {
-    BTreeNode *newChild = BTreeNode_create(child->order, child->isLeaf);
-    newChild->numKeys = child->order - 1;
-
-    for (int j = 0; j < child->order - 1; j++)
+    int order = child->order;
+    BTreeNode *newChild = BTreeNode_create(order, child->isLeaf);
+    
+    int mid = (order - 1) / 2;
+    
+    newChild->numKeys = order - 1 - (mid + 1);
+    for (int j = 0; j < newChild->numKeys; j++)
     {
-        newChild->keys[j] = child->keys[j + child->order];
-        newChild->values[j] = child->values[j + child->order];
+        newChild->keys[j] = child->keys[j + mid + 1];
+        newChild->values[j] = child->values[j + mid + 1];
     }
-
+    
     if (!child->isLeaf)
-        for (int j = 0; j < child->order; j++)
-            newChild->children[j] = child->children[j + child->order];
-    child->numKeys = child->order - 1;
-
-    for (int j = parent->numKeys; j > i; j--)
-        parent->children[j + 1] = parent->children[j];
-
-    parent->children[i + 1] = newChild;
-
-    for (int j = parent->numKeys - 1; j >= i; j--)
     {
-        parent->keys[j + 1] = parent->keys[j];
-        parent->values[j + 1] = parent->values[j];
+        for (int j = 0; j <= newChild->numKeys; j++)
+        {
+            newChild->children[j] = child->children[j + mid + 1];
+        }
     }
-
-    parent->keys[i] = child->keys[child->order - 1];
-    parent->values[i] = child->values[child->order - 1];
+    
+    child->numKeys = mid;
+    
+    for (int j = parent->numKeys; j > i; j--)
+    {
+        parent->children[j + 1] = parent->children[j];
+        parent->keys[j] = parent->keys[j - 1];
+        parent->values[j] = parent->values[j - 1];
+    }
+    
+    parent->children[i + 1] = newChild;
+    parent->keys[i] = child->keys[mid];
+    parent->values[i] = child->values[mid];
     parent->numKeys++;
 }
 

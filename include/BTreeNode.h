@@ -30,6 +30,8 @@ int BTreeNode_getNumKeys(BTreeNode *node);
 
 const int* BTreeNode_getValues(BTreeNode *node);
 
+const int* BTreeNode_getKeys(BTreeNode *node);
+
 bool BTreeNode_isLeaf(BTreeNode *node);
 
 bool BTreeNode_isFull(BTreeNode *node);

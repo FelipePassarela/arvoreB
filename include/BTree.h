@@ -20,6 +20,8 @@ void BTree_printInOrder(BTree *tree);
 
 void BTree_printPreOrder(BTree *tree);
 
+void BTree_printLevelOrder(BTree *tree);
+
 Queue* BTree_getNodes(BTree *tree);
 
 #endif //BTREE_H
