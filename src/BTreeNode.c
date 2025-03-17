@@ -222,14 +222,24 @@ void BTreeNode_insertNonFull(BTreeNode *node, int key, int value)
             i--;
         }
 
-        node->keys[i + 1] = key;
-        node->values[i + 1] = value;
-        node->numKeys++;
+        if (i >= 0 && node->keys[i] == key)
+            node->values[i] = value;
+        else
+        {
+            node->keys[i + 1] = key;
+            node->values[i + 1] = value;
+            node->numKeys++;
+        }
     }
     else
     {
         while (i >= 0 && key < node->keys[i])
             i--;
+        if (i >= 0 && node->keys[i] == key)
+        {
+            node->values[i] = value;
+            return;
+        }
         i++;
 
         if (BTreeNode_isFull(node->children[i]))
@@ -238,7 +248,6 @@ void BTreeNode_insertNonFull(BTreeNode *node, int key, int value)
             if (key > node->keys[i])
                 i++;
         }
-
         BTreeNode_insertNonFull(node->children[i], key, value);
     }
 }
@@ -305,13 +314,13 @@ void BTreeNode_deleteInternal(BTreeNode *node, int key)
             // Caso 2: nó interno.
             BTreeNode *leftChild = node->children[idx];
             BTreeNode *rightChild = node->children[idx + 1];
-            if (leftChild->numKeys >= node->order - 1) 
+            if (leftChild->numKeys > node->order - 1) 
             {
                 int pred = BTreeNode_getPredecessor(node, idx);
                 node->keys[idx] = pred;
                 BTreeNode_deleteInternal(leftChild, pred);
             } 
-            else if (rightChild->numKeys >= node->order - 1) 
+            else if (rightChild->numKeys > node->order - 1) 
             {
                 int succ = BTreeNode_getSuccessor(node, idx);
                 node->keys[idx] = succ;
@@ -355,7 +364,6 @@ void BTreeNode_fill(BTreeNode *node, int idx)
             BTreeNode_mergeChild(node, idx - 1);
     }
 }
-
 void BTreeNode_borrowFromPrev(BTreeNode *node, int idx) 
 {
     BTreeNode *child = node->children[idx];

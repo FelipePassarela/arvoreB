@@ -72,7 +72,7 @@ int main(int argc, char *argv[])
 
     fprintf(output, "\n-- ARVORE B\n");
     BTree_printLevelOrder(tree, output);
-    BTree_printInOrder(tree, output);
+    // BTree_printInOrder(tree, output);
 
     BTree_destroy(tree);
     fclose(input);
