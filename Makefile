@@ -22,7 +22,7 @@ $(BUILDDIR)/%.o: $(SRCDIR)/%.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 run: all
-	./$(BINDIR)/$(TARGET)
+	./$(BINDIR)/$(TARGET) $(INPUT_FILE) $(OUTPUT_FILE)
 
 clean:
 	rm -f $(BUILDDIR)/*.o $(BINDIR)/$(TARGET)
