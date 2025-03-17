@@ -39,14 +39,6 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    if (order < 2 || numOps < 0)
-    {
-        fprintf(stderr, "Erro: valores inválidos para ordem ou número de operações\n");
-        fclose(input);
-        fclose(output);
-        return 1;
-    }
-
     int t = ceil(order / 2) + 1;
     BTree *tree = BTree_create(t);
 
