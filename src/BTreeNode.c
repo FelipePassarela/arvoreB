@@ -12,7 +12,6 @@ struct BTreeNode
     int order;
     int numKeys;
     int *keys;
-    BTreeNode *parent;
     BTreeNode **children;
     bool isLeaf;
 };
@@ -23,7 +22,6 @@ BTreeNode *BTreeNode_create(int order, bool isLeaf)
     node->order = order;
     node->numKeys = 0;
     node->keys = (int *)malloc(sizeof(int) * (2 * order - 1));
-    node->parent = NULL;
     node->children = (BTreeNode **)malloc(sizeof(BTreeNode *) * (2 * order));
     node->isLeaf = isLeaf;
 
@@ -98,7 +96,6 @@ void BTreeNode_splitChild(BTreeNode *parent, int i, BTreeNode *child)
 {
     BTreeNode *newChild = BTreeNode_create(child->order, child->isLeaf);
     newChild->numKeys = child->order - 1;
-    newChild->parent = parent;
 
     for (int j = 0; j < child->order - 1; j++)
         newChild->keys[j] = child->keys[j + child->order];
@@ -170,7 +167,6 @@ BTreeNode *BTreeNode_setChildAt(BTreeNode *node, int i, BTreeNode *child)
 {
     BTreeNode *old = node->children[i];
     node->children[i] = child;
-    child->parent = node;
     return old;
 }
 
@@ -196,8 +192,6 @@ BTreeNode* BTreeNode_delete(BTreeNode* root, int key)
     if (root->numKeys == 0) 
     {
         BTreeNode* newRoot = root->isLeaf ? NULL : root->children[0];
-        if (newRoot != NULL)
-            newRoot->parent = NULL;
         free(root->keys);
         free(root->children);
         free(root);
@@ -308,8 +302,6 @@ void BTreeNode_borrowFromPrev(BTreeNode *node, int idx)
         for (int i = child->numKeys; i >= 0; i--) 
         {
             child->children[i + 1] = child->children[i];
-            if (child->children[i + 1] != NULL)
-                child->children[i + 1]->parent = child;
         }
     }
 
@@ -340,8 +332,6 @@ void BTreeNode_borrowFromNext(BTreeNode *node, int idx)
         for (int i = 0; i < sibling->numKeys; i++) 
         {
             sibling->children[i] = sibling->children[i + 1];
-            if (sibling->children[i] != NULL)
-                sibling->children[i]->parent = sibling;
         }
     }
     child->numKeys++;
@@ -364,8 +354,6 @@ void BTreeNode_mergeChild(BTreeNode *node, int idx)
         for (int i = 0; i <= sibling->numKeys; i++) 
         {
             child->children[child->numKeys + 1 + i] = sibling->children[i];
-            if (sibling->children[i] != NULL)
-                sibling->children[i]->parent = child;
         }
     }
 
