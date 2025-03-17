@@ -23,6 +23,11 @@ int main(void)
     printf("\nSearching for key 6: %s\n", BTree_search(tree, 6) ? "Found" : "Not Found");
     printf("Searching for key -1: %s\n", BTree_search(tree, -1) ? "Found" : "Not Found");
 
+
+    BTree_remove(tree, 6);
+    printf("After removing key 6:\n");
+    BTree_printPreOrder(tree);
+
     // Destroi a árvore
     BTree_destroy(tree);
 

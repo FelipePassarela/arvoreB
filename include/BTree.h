@@ -15,6 +15,8 @@ void BTree_insert(BTree *tree, int key);
 
 bool BTree_search(BTree *tree, int key);
 
+void BTree_remove(BTree *tree, int key);
+
 void BTree_printInOrder(BTree *tree);
 
 void BTree_printPreOrder(BTree *tree);

@@ -22,22 +22,17 @@ BTree *BTree_create(int order)
 
 void BTree_insert(BTree *tree, int key)
 {
-    BTreeNode *root = tree->root;
-    if (BTreeNode_isFull(root))
-    {
-        BTreeNode *newRoot = BTreeNode_create(tree->order, false);
-        BTreeNode_setChildAt(newRoot, 0, root);
-        BTreeNode_splitChild(newRoot, 0, root);
-        BTreeNode_insertNonFull(newRoot, key);
-        tree->root = newRoot;
-    }
-    else
-        BTreeNode_insertNonFull(root, key);
+    tree->root = BTreeNode_insert(tree->root, key);
 }
 
 bool BTree_search(BTree *tree, int key)
 {
     return BTreeNode_search(tree->root, key) != NULL;
+}
+
+void BTree_remove(BTree *tree, int key)
+{
+    tree->root = BTreeNode_delete(tree->root, key);
 }
 
 void BTree_printInOrder(BTree *tree)
