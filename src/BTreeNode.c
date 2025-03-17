@@ -241,38 +241,44 @@ void BTreeNode_insertNonFull(BTreeNode *node, int key, int value)
 
 void BTreeNode_splitChild(BTreeNode *parent, int i, BTreeNode *child)
 {
-    int order = child->order;
-    BTreeNode *newChild = BTreeNode_create(order, child->isLeaf);
+    int t = child->order / 2;
+    BTreeNode *newChild = BTreeNode_create(t, child->isLeaf);
     
-    int mid = (order - 1) / 2;
-    
-    newChild->numKeys = order - 1 - (mid + 1);
-    for (int j = 0; j < newChild->numKeys; j++)
+    // Copia as chaves e valores do filho para o novo filho.
+    newChild->numKeys = t - 1;
+    for (int j = 0; j < t - 1; j++)
     {
-        newChild->keys[j] = child->keys[j + mid + 1];
-        newChild->values[j] = child->values[j + mid + 1];
+        newChild->keys[j] = child->keys[j + t];
+        newChild->values[j] = child->values[j + t];
     }
-    
+
+    // Copia os filhos do filho para o novo filho.
     if (!child->isLeaf)
     {
-        for (int j = 0; j <= newChild->numKeys; j++)
+        for (int j = 0; j < t; j++)
         {
-            newChild->children[j] = child->children[j + mid + 1];
+            newChild->children[j] = child->children[j + t];
         }
     }
     
-    child->numKeys = mid;
-    
-    for (int j = parent->numKeys; j > i; j--)
+    child->numKeys = t - 1;
+
+    // Desloca os filhos de parent para abrir espaço para o novo filho
+    for (int j = parent->numKeys; j >= i; j--) 
     {
         parent->children[j + 1] = parent->children[j];
-        parent->keys[j] = parent->keys[j - 1];
-        parent->values[j] = parent->values[j - 1];
     }
     
-    parent->children[i + 1] = newChild;
-    parent->keys[i] = child->keys[mid];
-    parent->values[i] = child->values[mid];
+    // Desloca as chaves para abrir espaço para a chave mediana
+    for (int j = parent->numKeys - 1; j >= i; j--)
+    {
+        parent->keys[j + 1] = parent->keys[j];
+        parent->values[j + 1] = parent->values[j];
+    }
+    
+    // Insere o novo filho no nó pai.
+    parent->keys[i] = child->keys[t - 1];
+    parent->values[i] = child->values[t - 1];
     parent->numKeys++;
 }
 
