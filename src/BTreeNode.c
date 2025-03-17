@@ -253,19 +253,18 @@ void BTreeNode_splitChild(BTreeNode *parent, int i, BTreeNode *child)
     // Copia as chaves e valores para o novo nó.
     for (int j = 0; j < mid; j++)
     {
-        new->keys[j] = child->keys[j + parent->order];
-        new->values[j] = child->values[j + parent->order];
+        new->keys[j] = child->keys[j + mid + 1];
+        new->values[j] = child->values[j + mid + 1];
     }
 
     // Copia os filhos para o novo nó.
     if (!child->isLeaf)
     {
-        for (int j = 0; j < parent->order; j++)
-            new->children[j] = child->children[j + parent->order];
+        for (int j = 0; j < mid + 1; j++)
+            new->children[j] = child->children[j + mid + 1];
     }
     
     child->numKeys = mid;  // Atualiza o número de chaves no nó filho.
-
 
     // Desloca os filhos do nó pai para acomodar o novo filho.
     for (int j = parent->numKeys; j >= i + 1; j--) 
