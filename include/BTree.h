@@ -10,7 +10,7 @@ BTree *BTree_create(int order);
 
 void BTree_destroy(BTree *tree);
 
-void BTree_insert(BTree *tree, int key);
+void BTree_insert(BTree *tree, int key, int value);
 
 bool BTree_search(BTree *tree, int key);
 

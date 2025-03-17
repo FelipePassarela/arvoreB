@@ -13,7 +13,7 @@ void BTreeNode_destroy(BTreeNode *node);
 
 BTreeNode *BTreeNode_search(BTreeNode *root, int key);
 
-BTreeNode* BTreeNode_insert(BTreeNode *node, int key);
+BTreeNode* BTreeNode_insert(BTreeNode *node, int key, int value);
 
 BTreeNode* BTreeNode_delete(BTreeNode* root, int key);
 
@@ -28,7 +28,7 @@ int BTreeNode_getLevel(BTreeNode *node);
 
 int BTreeNode_getNumKeys(BTreeNode *node);
 
-const int* BTreeNode_getKeys(BTreeNode *node);
+const int* BTreeNode_getValues(BTreeNode *node);
 
 bool BTreeNode_isLeaf(BTreeNode *node);
 

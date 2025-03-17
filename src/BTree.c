@@ -18,9 +18,9 @@ BTree *BTree_create(int order)
     return tree;
 }
 
-void BTree_insert(BTree *tree, int key)
+void BTree_insert(BTree *tree, int key, int value)
 {
-    tree->root = BTreeNode_insert(tree->root, key);
+    tree->root = BTreeNode_insert(tree->root, key, value);
     tree->numKeys++;
 }
 

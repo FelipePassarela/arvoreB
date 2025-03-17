@@ -7,12 +7,13 @@ struct BTreeNode
     int order;
     int numKeys;
     int *keys;
+    int *values;
     BTreeNode **children;
     bool isLeaf;
     int level;
 };
 
-static void BTreeNode_insertNonFull(BTreeNode *node, int key);
+static void BTreeNode_insertNonFull(BTreeNode *node, int key, int value);
 
 static void BTreeNode_splitChild(BTreeNode *parent, int i, BTreeNode *child);
 
@@ -38,6 +39,7 @@ BTreeNode *BTreeNode_create(int order, bool isLeaf)
     node->order = order;
     node->numKeys = 0;
     node->keys = (int *)malloc(sizeof(int) * (2 * order - 1));
+    node->values = (int *)malloc(sizeof(int) * (2 * order - 1));
     node->children = (BTreeNode **)malloc(sizeof(BTreeNode *) * (2 * order));
     node->isLeaf = isLeaf;
     node->level = 0;
@@ -73,20 +75,20 @@ BTreeNode *BTreeNode_search(BTreeNode *root, int key)
     return BTreeNode_search(root->children[i], key);
 }
 
-BTreeNode* BTreeNode_insert(BTreeNode* node, int key)
+BTreeNode* BTreeNode_insert(BTreeNode* node, int key, int value)
 {
     if (BTreeNode_isFull(node))
     {
         BTreeNode *newRoot = BTreeNode_create(node->order, false);
         BTreeNode_setChildAt(newRoot, 0, node);
         BTreeNode_splitChild(newRoot, 0, node);
-        BTreeNode_insertNonFull(newRoot, key);
+        BTreeNode_insertNonFull(newRoot, key, value);
         BTreeNode_updateLevels(newRoot, 0);
         return newRoot;
     }
     else
     {
-        BTreeNode_insertNonFull(node, key);
+        BTreeNode_insertNonFull(node, key, value);
         BTreeNode_updateLevels(node, 0);
         return node;
     }
@@ -118,7 +120,7 @@ void BTreeNode_printInOrder(BTreeNode *root)
     for (int i = 0; i < root->numKeys; i++)
     {
         BTreeNode_printInOrder(root->children[i]);
-        printf("%d\n", root->keys[i]);
+        printf("%d : %d\n", root->keys[i], root->values[i]);
     }
     BTreeNode_printInOrder(root->children[root->numKeys]);
 }
@@ -132,7 +134,7 @@ void BTreeNode_printPreOrder(BTreeNode *root, int level)
     {
         for (int j = 0; j < level; j++)
             printf("   ");
-        printf("%d\n", root->keys[i]);
+        printf("%d : %d\n", root->keys[i], root->values[i]);
         BTreeNode_printPreOrder(root->children[i], level + 1);
     }
     BTreeNode_printPreOrder(root->children[root->numKeys], level + 1);
@@ -176,9 +178,9 @@ int BTreeNode_getNumKeys(BTreeNode* node)
     return node->numKeys;
 }
 
-const int* BTreeNode_getKeys(BTreeNode* node)
+const int* BTreeNode_getValues(BTreeNode* node)
 {
-    return node->keys;
+    return node->values;
 }
 
 bool BTreeNode_isLeaf(BTreeNode *node)
@@ -198,7 +200,7 @@ BTreeNode *BTreeNode_setChildAt(BTreeNode *node, int i, BTreeNode *child)
     return old;
 }
 
-void BTreeNode_insertNonFull(BTreeNode *node, int key)
+void BTreeNode_insertNonFull(BTreeNode *node, int key, int value)
 {
     int i = node->numKeys - 1;
 
@@ -207,10 +209,12 @@ void BTreeNode_insertNonFull(BTreeNode *node, int key)
         while (i >= 0 && key < node->keys[i])
         {
             node->keys[i + 1] = node->keys[i];
+            node->values[i + 1] = node->values[i];
             i--;
         }
 
         node->keys[i + 1] = key;
+        node->values[i + 1] = value;
         node->numKeys++;
     }
     else
@@ -226,7 +230,7 @@ void BTreeNode_insertNonFull(BTreeNode *node, int key)
                 i++;
         }
 
-        BTreeNode_insertNonFull(node->children[i], key);
+        BTreeNode_insertNonFull(node->children[i], key, value);
     }
 }
 
@@ -236,7 +240,10 @@ void BTreeNode_splitChild(BTreeNode *parent, int i, BTreeNode *child)
     newChild->numKeys = child->order - 1;
 
     for (int j = 0; j < child->order - 1; j++)
+    {
         newChild->keys[j] = child->keys[j + child->order];
+        newChild->values[j] = child->values[j + child->order];
+    }
 
     if (!child->isLeaf)
         for (int j = 0; j < child->order; j++)
@@ -249,9 +256,13 @@ void BTreeNode_splitChild(BTreeNode *parent, int i, BTreeNode *child)
     parent->children[i + 1] = newChild;
 
     for (int j = parent->numKeys - 1; j >= i; j--)
+    {
         parent->keys[j + 1] = parent->keys[j];
+        parent->values[j + 1] = parent->values[j];
+    }
 
     parent->keys[i] = child->keys[child->order - 1];
+    parent->values[i] = child->values[child->order - 1];
     parent->numKeys++;
 }
 
