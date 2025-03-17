@@ -59,6 +59,7 @@ void BTreeNode_destroy(BTreeNode *node)
         BTreeNode_destroy(node->children[i]);
     BTreeNode_destroy(node->children[node->numKeys]);
     free(node->keys);
+    free(node->values);
     free(node->children);
     free(node);
 }
@@ -105,6 +106,7 @@ BTreeNode* BTreeNode_delete(BTreeNode* root, int key)
     {
         BTreeNode* newRoot = root->isLeaf ? NULL : root->children[0];
         free(root->keys);
+        free(root->values);
         free(root->children);
         free(root);
         if (newRoot) BTreeNode_updateLevels(newRoot, 0);
@@ -352,9 +354,9 @@ void BTreeNode_deleteInternal(BTreeNode *node, int key)
 
 void BTreeNode_fill(BTreeNode *node, int idx) 
 {
-    if (idx != 0 && node->children[idx - 1]->numKeys >= node->order - 1)
+    if (idx != 0 && node->children[idx - 1]->numKeys >= node->order)
         BTreeNode_borrowFromPrev(node, idx);
-    else if (idx != node->numKeys && node->children[idx + 1]->numKeys >= node->order - 1)
+    else if (idx != node->numKeys && node->children[idx + 1]->numKeys >= node->order)
         BTreeNode_borrowFromNext(node, idx);
     else 
     {
@@ -364,6 +366,7 @@ void BTreeNode_fill(BTreeNode *node, int idx)
             BTreeNode_mergeChild(node, idx - 1);
     }
 }
+
 void BTreeNode_borrowFromPrev(BTreeNode *node, int idx) 
 {
     BTreeNode *child = node->children[idx];
@@ -400,14 +403,14 @@ void BTreeNode_borrowFromNext(BTreeNode *node, int idx)
         child->children[child->numKeys + 1] = sibling->children[0];
     node->keys[idx] = sibling->keys[0];
 
-    for (int i = 0; i < sibling->numKeys - 1; i++)
-        sibling->keys[i] = sibling->keys[i + 1];
+    for (int i = 1; i < sibling->numKeys; i++)
+        sibling->keys[i - 1] = sibling->keys[i];
 
     if (!sibling->isLeaf) 
     {
-        for (int i = 0; i < sibling->numKeys; i++) 
+        for (int i = 1; i <= sibling->numKeys; i++) 
         {
-            sibling->children[i] = sibling->children[i + 1];
+            sibling->children[i - 1] = sibling->children[i];
         }
     }
     child->numKeys++;
@@ -419,31 +422,33 @@ void BTreeNode_mergeChild(BTreeNode *node, int idx)
     BTreeNode *child = node->children[idx];
     BTreeNode *sibling = node->children[idx + 1];
 
-    // Une a chave do nó pai com as chaves do sibling.
-    child->keys[child->numKeys] = node->keys[idx];
+    child->keys[child->order] = node->keys[idx];
 
     for (int i = 0; i < sibling->numKeys; i++)
-        child->keys[child->numKeys + 1 + i] = sibling->keys[i];
+        child->keys[child->order + i] = sibling->keys[i];
 
     if (!child->isLeaf) 
     {
         for (int i = 0; i <= sibling->numKeys; i++) 
-        {
-            child->children[child->numKeys + 1 + i] = sibling->children[i];
-        }
+            child->children[child->order + i] = sibling->children[i];
     }
 
-    child->numKeys += sibling->numKeys + 1;
-
-    // Remove a referência para sibling neste nó.
-    for (int i = idx + 1; i < node->numKeys; i++) 
+    for (int i = idx+1; i < node->numKeys; i++) 
     {
         node->keys[i - 1] = node->keys[i];
-        node->children[i] = node->children[i + 1];
+        node->values[i - 1] = node->keys[i];
     }
+
+    // Remove a referência para sibling neste nó.
+    for (int i = idx+2; i <= node->numKeys; i++)
+        node->children[i - 1] = node->children[i];
+    
+    // Atualiza o número de chaves no filho e no nó
+    child->numKeys += sibling->numKeys + 1;
     node->numKeys--;
 
     free(sibling->keys);
+    free(sibling->values);
     free(sibling->children);
     free(sibling);
 }
