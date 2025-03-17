@@ -43,7 +43,6 @@ void BTree_printInOrder(BTree *tree)
 void BTree_destroy(BTree *tree)
 {
     BTreeNode_destroy(tree->root);
-    free(tree);
 }
 
 void BTree_printPreOrder(BTree *tree)
