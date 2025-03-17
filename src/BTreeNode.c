@@ -114,12 +114,13 @@ void BTreeNode_printInOrder(BTreeNode *root)
 {
     if (root == NULL)
         return;
-
+    
     for (int i = 0; i < root->numKeys; i++)
     {
         BTreeNode_printInOrder(root->children[i]);
         printf("%d\n", root->keys[i]);
     }
+    BTreeNode_printInOrder(root->children[root->numKeys]);
 }
 
 void BTreeNode_printPreOrder(BTreeNode *root, int level)
@@ -134,6 +135,7 @@ void BTreeNode_printPreOrder(BTreeNode *root, int level)
         printf("%d\n", root->keys[i]);
         BTreeNode_printPreOrder(root->children[i], level + 1);
     }
+    BTreeNode_printPreOrder(root->children[root->numKeys], level + 1);
 }
 
 Queue* BTreeNode_getNodes(BTreeNode* root, int totalKeys)
