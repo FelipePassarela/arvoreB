@@ -34,7 +34,6 @@ int main(int argc, char *argv[])
 
     int t = (order) / 2 + (order % 2 == 0);
     BTree *tree = BTree_create(t);
-    printf("t=%d\n", t);
 
     for (int i = 0; i < numOps; i++)
     {
@@ -63,7 +62,7 @@ int main(int argc, char *argv[])
                 fscanf(input, "%d\n", &key);
                 bool found = BTree_search(tree, key);
                 char *msg = found ? "O REGISTRO ESTA NA ARVORE!\n" : "O REGISTRO NAO ESTA NA ARVORE!\n";
-                printf("%s", msg);
+                fprintf(output, "%s", msg);
                 break;
             }
             default:
@@ -71,9 +70,9 @@ int main(int argc, char *argv[])
         }
     }
 
-    printf("-- ARVORE B\n");
-    BTree_printLevelOrder(tree);
-    BTree_printInOrder(tree);
+    fprintf(output, "\n-- ARVORE B\n");
+    BTree_printLevelOrder(tree, output);
+    BTree_printInOrder(tree, output);
 
     BTree_destroy(tree);
     fclose(input);

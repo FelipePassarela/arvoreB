@@ -278,6 +278,7 @@ void BTreeNode_splitChild(BTreeNode *parent, int i, BTreeNode *child)
         parent->values[j + 1] = parent->values[j];
     }
     
+    // A chave mediana é promovida para o pai
     parent->keys[i] = child->keys[mid];
     parent->values[i] = child->values[mid];
     parent->numKeys++;
@@ -304,13 +305,13 @@ void BTreeNode_deleteInternal(BTreeNode *node, int key)
             // Caso 2: nó interno.
             BTreeNode *leftChild = node->children[idx];
             BTreeNode *rightChild = node->children[idx + 1];
-            if (leftChild->numKeys >= node->order) 
+            if (leftChild->numKeys >= node->order - 1) 
             {
                 int pred = BTreeNode_getPredecessor(node, idx);
                 node->keys[idx] = pred;
                 BTreeNode_deleteInternal(leftChild, pred);
             } 
-            else if (rightChild->numKeys >= node->order) 
+            else if (rightChild->numKeys >= node->order - 1) 
             {
                 int succ = BTreeNode_getSuccessor(node, idx);
                 node->keys[idx] = succ;
@@ -331,7 +332,7 @@ void BTreeNode_deleteInternal(BTreeNode *node, int key)
 
         bool flag = (idx == node->numKeys);
 
-        if (node->children[idx]->numKeys < node->order)
+        if (node->children[idx]->numKeys < node->order - 1)
             BTreeNode_fill(node, idx);
         if (flag && idx > node->numKeys)
             BTreeNode_deleteInternal(node->children[idx - 1], key);
@@ -342,9 +343,9 @@ void BTreeNode_deleteInternal(BTreeNode *node, int key)
 
 void BTreeNode_fill(BTreeNode *node, int idx) 
 {
-    if (idx != 0 && node->children[idx - 1]->numKeys >= node->order)
+    if (idx != 0 && node->children[idx - 1]->numKeys >= node->order - 1)
         BTreeNode_borrowFromPrev(node, idx);
-    else if (idx != node->numKeys && node->children[idx + 1]->numKeys >= node->order)
+    else if (idx != node->numKeys && node->children[idx + 1]->numKeys >= node->order - 1)
         BTreeNode_borrowFromNext(node, idx);
     else 
     {

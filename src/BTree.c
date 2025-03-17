@@ -36,7 +36,7 @@ void BTree_remove(BTree *tree, int key)
     tree->numKeys--;
 }
 
-void BTree_printInOrder(BTree *tree)
+void BTree_printInOrder(BTree *tree, FILE* outputFile)
 {
     BTreeNode_printInOrder(tree->root);
     printf("\n");
@@ -53,7 +53,7 @@ void BTree_printPreOrder(BTree *tree)
     printf("\n");
 }
 
-void BTree_printLevelOrder(BTree *tree)
+void BTree_printLevelOrder(BTree *tree, FILE* outputFile)
 {
     Queue *nodes = BTree_getNodes(tree);
     int level = 0;
@@ -65,18 +65,18 @@ void BTree_printLevelOrder(BTree *tree)
         if (BTreeNode_getLevel(node) > level)
         {
             level++;
-            printf("\n");
+            fprintf(outputFile, "\n");
         }
         
         const int *keys = BTreeNode_getKeys(node);
         for (int i = 0; i < BTreeNode_getNumKeys(node); i++)
         {
-            if (i == 0) printf("[");
-            printf("key: %d, ", keys[i]);
-            if (i == BTreeNode_getNumKeys(node) - 1) printf("l=%d]", BTreeNode_getLevel(node));
+            if (i == 0) fprintf(outputFile, "[");
+            fprintf(outputFile, "key: %d, ", keys[i]);
+            if (i == BTreeNode_getNumKeys(node) - 1) fprintf(outputFile, "]");
         }
     }
-    printf("\n");
+    fprintf(outputFile, "\n");
 }
 
 Queue* BTree_getNodes(BTree* tree)
