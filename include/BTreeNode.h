@@ -1,11 +1,8 @@
-//
-// Created by Felipe Passarela on 17/03/2025.
-//
-
 #ifndef BTREENODE_H
 #define BTREENODE_H
 
 #include <stdbool.h>
+#include "Queue.h"
 
 typedef struct BTreeNode BTreeNode;
 
@@ -25,13 +22,17 @@ void BTreeNode_printInOrder(BTreeNode *root);
 void BTreeNode_printPreOrder(BTreeNode *root, int level);
 
 
-bool BTreeNode_isLeaf(BTreeNode *node);
+Queue *BTreeNode_getNodes(BTreeNode *root, int totalKeys);
 
-bool BTreeNode_isFull(BTreeNode *node);
+int BTreeNode_getLevel(BTreeNode *node);
 
 int BTreeNode_getNumKeys(BTreeNode *node);
 
-int BTreeNode_getKeyAt(BTreeNode *node, int i);
+const int* BTreeNode_getKeys(BTreeNode *node);
+
+bool BTreeNode_isLeaf(BTreeNode *node);
+
+bool BTreeNode_isFull(BTreeNode *node);
 
 BTreeNode *BTreeNode_setChildAt(BTreeNode *node, int i, BTreeNode* child);
 

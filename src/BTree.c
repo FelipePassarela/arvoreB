@@ -1,15 +1,12 @@
-//
-// Created by Felipe Passarela on 17/03/2025.
-//
-
-#include <malloc.h>
-#include "../include/BTree.h"
-#include "../include/BTreeNode.h"
+#include <stdlib.h>
+#include "BTree.h"
+#include "BTreeNode.h"
 
 struct BTree
 {
     BTreeNode *root;
     int order;
+    unsigned numKeys;
 };
 
 BTree *BTree_create(int order)
@@ -17,12 +14,14 @@ BTree *BTree_create(int order)
     BTree *tree = (BTree *)malloc(sizeof(BTree));
     tree->root = BTreeNode_create(order, true);
     tree->order = order;
+    tree->numKeys = 0;
     return tree;
 }
 
 void BTree_insert(BTree *tree, int key)
 {
     tree->root = BTreeNode_insert(tree->root, key);
+    tree->numKeys++;
 }
 
 bool BTree_search(BTree *tree, int key)
@@ -33,6 +32,7 @@ bool BTree_search(BTree *tree, int key)
 void BTree_remove(BTree *tree, int key)
 {
     tree->root = BTreeNode_delete(tree->root, key);
+    tree->numKeys--;
 }
 
 void BTree_printInOrder(BTree *tree)
@@ -48,4 +48,9 @@ void BTree_destroy(BTree *tree)
 void BTree_printPreOrder(BTree *tree)
 {
     BTreeNode_printPreOrder(tree->root, 0);
+}
+
+Queue* BTree_getNodes(BTree* tree)
+{
+    return BTreeNode_getNodes(tree->root, tree->numKeys);
 }

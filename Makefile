@@ -6,7 +6,7 @@ SRCDIR = src
 BUILDDIR = build
 BINDIR = bin
 
-SOURCES = $(SRCDIR)/main.c $(SRCDIR)/BTree.c $(SRCDIR)/BTreeNode.c
+SOURCES = $(SRCDIR)/main.c $(SRCDIR)/BTree.c $(SRCDIR)/BTreeNode.c $(SRCDIR)/Queue.c
 OBJECTS = $(patsubst $(SRCDIR)/%.c, $(BUILDDIR)/%.o, $(SOURCES))
 
 all: directories $(BINDIR)/$(TARGET)

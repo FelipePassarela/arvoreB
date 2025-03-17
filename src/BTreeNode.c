@@ -1,8 +1,4 @@
-//
-// Created by Felipe Passarela on 17/03/2025.
-//
-
-#include <malloc.h>
+#include <stdlib.h>
 #include <stdio.h>
 #include "BTreeNode.h"
 
@@ -13,6 +9,7 @@ struct BTreeNode
     int *keys;
     BTreeNode **children;
     bool isLeaf;
+    int level;
 };
 
 static void BTreeNode_insertNonFull(BTreeNode *node, int key);
@@ -29,6 +26,8 @@ static void BTreeNode_borrowFromNext(BTreeNode *node, int idx);
 
 static void BTreeNode_mergeChild(BTreeNode *node, int idx);
 
+static void BTreeNode_updateLevels(BTreeNode *node, int level);
+
 static int BTreeNode_getPredecessor(BTreeNode *node, int idx);
 
 static int BTreeNode_getSuccessor(BTreeNode *node, int idx);
@@ -41,6 +40,7 @@ BTreeNode *BTreeNode_create(int order, bool isLeaf)
     node->keys = (int *)malloc(sizeof(int) * (2 * order - 1));
     node->children = (BTreeNode **)malloc(sizeof(BTreeNode *) * (2 * order));
     node->isLeaf = isLeaf;
+    node->level = 0;
 
     return node;
 }
@@ -81,11 +81,13 @@ BTreeNode* BTreeNode_insert(BTreeNode* node, int key)
         BTreeNode_setChildAt(newRoot, 0, node);
         BTreeNode_splitChild(newRoot, 0, node);
         BTreeNode_insertNonFull(newRoot, key);
+        BTreeNode_updateLevels(newRoot, 0);
         return newRoot;
     }
     else
     {
         BTreeNode_insertNonFull(node, key);
+        BTreeNode_updateLevels(node, 0);
         return node;
     }
 }
@@ -100,37 +102,81 @@ BTreeNode* BTreeNode_delete(BTreeNode* root, int key)
         free(root->keys);
         free(root->children);
         free(root);
+        if (newRoot) BTreeNode_updateLevels(newRoot, 0);
         return newRoot;
     }
+
+    BTreeNode_updateLevels(root, 0);
     return root;
 }
 
 void BTreeNode_printInOrder(BTreeNode *root)
 {
-    if (root != NULL)
+    if (root == NULL)
+        return;
+
+    for (int i = 0; i < root->numKeys; i++)
     {
-        for (int i = 0; i < root->numKeys; i++)
-        {
-            BTreeNode_printInOrder(root->children[i]);
-            printf("%d\n", root->keys[i]);
-        }
-        BTreeNode_printInOrder(root->children[root->numKeys]);
+        BTreeNode_printInOrder(root->children[i]);
+        printf("%d\n", root->keys[i]);
     }
 }
 
 void BTreeNode_printPreOrder(BTreeNode *root, int level)
 {
-    if (root != NULL)
+    if (root == NULL)
+        return;
+
+    for (int i = 0; i < root->numKeys; i++)
     {
-        for (int i = 0; i < root->numKeys; i++)
-        {
-            for (int j = 0; j < level; j++)
-                printf("   ");
-            printf("%d\n", root->keys[i]);
-            BTreeNode_printPreOrder(root->children[i], level + 1);
-        }
-        BTreeNode_printPreOrder(root->children[root->numKeys], level + 1);
+        for (int j = 0; j < level; j++)
+            printf("   ");
+        printf("%d\n", root->keys[i]);
+        BTreeNode_printPreOrder(root->children[i], level + 1);
     }
+}
+
+Queue* BTreeNode_getNodes(BTreeNode* root, int totalKeys)
+{
+    Queue *nodeQueue = Queue_create(totalKeys, sizeof(BTreeNode *));
+    Queue *result = Queue_create(totalKeys, sizeof(BTreeNode *));
+    
+    BTreeNode *temp = root;
+    Queue_enqueue(nodeQueue, &temp);
+    
+    while (!Queue_isEmpty(nodeQueue)) 
+    {
+        BTreeNode *node;
+        Queue_dequeue(nodeQueue, &node);
+        Queue_enqueue(result, &node);
+                
+        if (!node->isLeaf) 
+        {
+            for (int i = 0; i <= node->numKeys; i++) 
+            {
+                BTreeNode *child = node->children[i];
+                Queue_enqueue(nodeQueue, &child);
+            }
+        }
+    }
+
+    Queue_destroy(nodeQueue);
+    return result;
+}
+
+int BTreeNode_getLevel(BTreeNode* node)
+{
+    return node->level;
+}
+
+int BTreeNode_getNumKeys(BTreeNode* node)
+{
+    return node->numKeys;
+}
+
+const int* BTreeNode_getKeys(BTreeNode* node)
+{
+    return node->keys;
 }
 
 bool BTreeNode_isLeaf(BTreeNode *node)
@@ -141,16 +187,6 @@ bool BTreeNode_isLeaf(BTreeNode *node)
 bool BTreeNode_isFull(BTreeNode *node)
 {
     return node->numKeys == 2 * node->order - 1;
-}
-
-int BTreeNode_getNumKeys(BTreeNode *node)
-{
-    return node->numKeys;
-}
-
-int BTreeNode_getKeyAt(BTreeNode *node, int i)
-{
-    return node->keys[i];
 }
 
 BTreeNode *BTreeNode_setChildAt(BTreeNode *node, int i, BTreeNode *child)
@@ -371,6 +407,16 @@ void BTreeNode_mergeChild(BTreeNode *node, int idx)
     free(sibling->keys);
     free(sibling->children);
     free(sibling);
+}
+
+void BTreeNode_updateLevels(BTreeNode* node, int level)
+{
+    node->level = level;
+    if (!node->isLeaf)
+    {
+        for (int i = 0; i <= node->numKeys; i++)
+            BTreeNode_updateLevels(node->children[i], level + 1);
+    }
 }
 
 int BTreeNode_getPredecessor(BTreeNode *node, int idx) 
