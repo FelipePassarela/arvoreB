@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 #include "BTree.h"
 #include "BTreeNode.h"
 #include "Queue.h"
@@ -30,42 +31,73 @@ int main(int argc, char *argv[])
     }
 
     int order, numOps;
-    fscanf(input, "%d\n%d\n", &order, &numOps);
+    if (fscanf(input, "%d\n%d\n", &order, &numOps) != 2)
+    {
+        fprintf(stderr, "Erro: formato de entrada inválido\n");
+        fclose(input);
+        fclose(output);
+        return 1;
+    }
 
-    int t = (order) / 2 + (order % 2 == 0);
+    if (order < 2 || numOps < 0)
+    {
+        fprintf(stderr, "Erro: valores inválidos para ordem ou número de operações\n");
+        fclose(input);
+        fclose(output);
+        return 1;
+    }
+
+    int t = ceil(order / 2) + 1;
     BTree *tree = BTree_create(t);
 
     for (int i = 0; i < numOps; i++)
     {
         char op;
-        fscanf(input, "%c ", &op);
+        char line[256];
+        
+        if (fgets(line, sizeof(line), input) == NULL)
+        {
+            fprintf(stderr, "Erro: fim inesperado do arquivo\n");
+            break;
+        }
+
+        if (sscanf(line, " %c", &op) != 1)
+            continue;
 
         switch (op)
         {
             case 'I':
             {
                 int key, value;
-                fscanf(input, "%d, %d\n", &key, &value);
-                BTree_insert(tree, key, value);
+                if (sscanf(line, "I %d, %d", &key, &value) == 2)
+                {
+                    BTree_insert(tree, key, value);
+                }
                 break;
             }
             case 'R':
             {
                 int key;
-                fscanf(input, "%d\n", &key);
-                BTree_remove(tree, key);
+                if (sscanf(line, "R %d", &key) == 1)
+                {
+                    BTree_remove(tree, key);
+                }
                 break;
             }
             case 'B':
             {
                 int key;
-                fscanf(input, "%d\n", &key);
-                bool found = BTree_search(tree, key);
-                char *msg = found ? "O REGISTRO ESTA NA ARVORE!\n" : "O REGISTRO NAO ESTA NA ARVORE!\n";
-                fprintf(output, "%s", msg);
+                if (sscanf(line, "B %d", &key) == 1)
+                {
+                    bool found = BTree_search(tree, key);
+                    fprintf(output, "%s\n", found ? 
+                        "O REGISTRO ESTA NA ARVORE!" : 
+                        "O REGISTRO NAO ESTA NA ARVORE!");
+                }
                 break;
             }
             default:
+                fprintf(stderr, "Operação desconhecida: %c\n", op);
                 break;
         }
     }
