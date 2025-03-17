@@ -77,6 +77,7 @@ void BTree_printLevelOrder(BTree *tree, FILE* outputFile)
         }
     }
     fprintf(outputFile, "\n");
+    Queue_destroy(nodes);
 }
 
 Queue* BTree_getNodes(BTree* tree)
