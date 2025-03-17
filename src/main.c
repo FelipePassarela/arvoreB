@@ -32,7 +32,9 @@ int main(int argc, char *argv[])
     int order, numOps;
     fscanf(input, "%d\n%d\n", &order, &numOps);
 
-    BTree *tree = BTree_create(order);
+    int t = (order) / 2 + (order % 2 == 0);
+    BTree *tree = BTree_create(t);
+    printf("t=%d\n", t);
 
     for (int i = 0; i < numOps; i++)
     {
@@ -43,10 +45,9 @@ int main(int argc, char *argv[])
         {
             case 'I':
             {
-                int key1, key2;
-                fscanf(input, "%d, %d\n", &key1, &key2);
-                BTree_insert(tree, key1);
-                BTree_insert(tree, key2);
+                int key, value;
+                fscanf(input, "%d, %d\n", &key, &value);
+                BTree_insert(tree, key, value);
                 break;
             }
             case 'R':
@@ -62,8 +63,7 @@ int main(int argc, char *argv[])
                 fscanf(input, "%d\n", &key);
                 bool found = BTree_search(tree, key);
                 char *msg = found ? "O REGISTRO ESTA NA ARVORE!\n" : "O REGISTRO NAO ESTA NA ARVORE!\n";
-                fprintf(output, "%s", msg);
-                printf("%s", msg); // TODO: Remove this line
+                printf("%s", msg);
                 break;
             }
             default:
@@ -71,44 +71,11 @@ int main(int argc, char *argv[])
         }
     }
 
-    //     -- ARVORE B
-    // [key: 51, key: 75, ]
-    // [key: 20, key: 40, key: 45, ][key: 55, key: 60, key: 62, ][key: 77, ]
-
-    printf("-- ARVORE B\n");  // TODO: Remove this line
-    fprintf(output, "-- ARVORE B\n");
-
-    int level = 0;
-    Queue *nodes = BTree_getNodes(tree);
-    while (!Queue_isEmpty(nodes))
-    {
-        BTreeNode *node;
-        Queue_dequeue(nodes, &node);
-        
-        printf("[");  // TODO: Remove this line
-        fprintf(output, "[");
-
-        for (int i = 0; i < BTreeNode_getNumKeys(node); i++)
-        {
-            printf("key: %d, ", BTreeNode_getKeys(node)[i]);
-            fprintf(output, "key: %d, ", BTreeNode_getKeys(node)[i]);
-        }
-
-        printf(" l=%d]", level);  // TODO: Remove this line
-        fprintf(output, " l=%d]\n", level);  // Keeping output for level
-
-        if (BTreeNode_getLevel(node) > level)
-        {
-            level = BTreeNode_getLevel(node);
-            printf("\n");  // TODO: Remove this line
-            fprintf(output, "\n");
-        }
-    }
-    
-    fprintf(output, "\n");
+    printf("-- ARVORE B\n");
+    BTree_printLevelOrder(tree);
+    BTree_printInOrder(tree);
 
     BTree_destroy(tree);
-    Queue_destroy(nodes);
     fclose(input);
     fclose(output);
     

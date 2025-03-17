@@ -39,6 +39,7 @@ void BTree_remove(BTree *tree, int key)
 void BTree_printInOrder(BTree *tree)
 {
     BTreeNode_printInOrder(tree->root);
+    printf("\n");
 }
 
 void BTree_destroy(BTree *tree)
@@ -49,6 +50,7 @@ void BTree_destroy(BTree *tree)
 void BTree_printPreOrder(BTree *tree)
 {
     BTreeNode_printPreOrder(tree->root, 0);
+    printf("\n");
 }
 
 void BTree_printLevelOrder(BTree *tree)
