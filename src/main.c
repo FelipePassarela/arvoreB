@@ -1,35 +1,105 @@
+// TDOO: Put name and matriculation in all files
+
 #include <stdio.h>
-#include "../include/BTree.h"
+#include <stdlib.h>
+#include <math.h>
+#include "btree/BTree.h"
+#include "utils/Queue.h"
 
-int main(void)
+int main(int argc, char *argv[])
 {
-    BTree *tree = BTree_create(3); // Cria uma B-Tree de ordem 3
+    if (argc != 3)
+    {
+        printf("Usage: %s <input_file> <output_file>\n", argv[0]);
+        return 1;
+    }
 
-    // Insere algumas chaves na árvore
-    BTree_insert(tree, 10);
-    BTree_insert(tree, 20);
-    BTree_insert(tree, 5);
-    BTree_insert(tree, 6);
-    BTree_insert(tree, 12);
-    BTree_insert(tree, 30);
-    BTree_insert(tree, 7);
-    BTree_insert(tree, 17);
+    FILE *input = fopen(argv[1], "r");
+    FILE *output = fopen(argv[2], "w");
 
-    // Imprime a árvore
-    printf("B-Tree:\n");
-    BTree_printPreOrder(tree);
+    if (input == NULL)
+    {
+        printf("Error: could not open file %s\n", argv[1]);
+        return 1;
+    }
 
-    // Busca por algumas chaves
-    printf("\nSearching for key 6: %s\n", BTree_search(tree, 6) ? "Found" : "Not Found");
-    printf("Searching for key -1: %s\n", BTree_search(tree, -1) ? "Found" : "Not Found");
+    if (output == NULL)
+    {
+        printf("Error: could not open file %s\n", argv[2]);
+        return 1;
+    }
 
+    int order, numOps;
+    if (fscanf(input, "%d\n%d\n", &order, &numOps) != 2)
+    {
+        fprintf(stderr, "Erro: formato de entrada inválido\n");
+        fclose(input);
+        fclose(output);
+        return 1;
+    }
 
-    BTree_remove(tree, 6);
-    printf("After removing key 6:\n");
-    BTree_printPreOrder(tree);
+    int t = ceil(order / 2) + 1;
+    BTree *tree = BTree_create(t);
 
-    // Destroi a árvore
+    for (int i = 0; i < numOps; i++)
+    {
+        char op;
+        char line[256];
+        
+        if (fgets(line, sizeof(line), input) == NULL)
+        {
+            fprintf(stderr, "Erro: fim inesperado do arquivo\n");
+            break;
+        }
+
+        if (sscanf(line, " %c", &op) != 1)
+            continue;
+
+        switch (op)
+        {
+            case 'I':
+            {
+                int key, value;
+                if (sscanf(line, "I %d, %d", &key, &value) == 2)
+                {
+                    BTree_insert(tree, key, value);
+                }
+                break;
+            }
+            case 'R':
+            {
+                int key;
+                if (sscanf(line, "R %d", &key) == 1)
+                {
+                    BTree_remove(tree, key);
+                }
+                break;
+            }
+            case 'B':
+            {
+                int key;
+                if (sscanf(line, "B %d", &key) == 1)
+                {
+                    bool found = BTree_search(tree, key);
+                    fprintf(output, "%s\n", found ? 
+                        "O REGISTRO ESTA NA ARVORE!" : 
+                        "O REGISTRO NAO ESTA NA ARVORE!");
+                }
+                break;
+            }
+            default:
+                fprintf(stderr, "Operação desconhecida: %c\n", op);
+                break;
+        }
+    }
+
+    // fprintf(output, "\n-- ARVORE B\n");
+    // BTree_printLevelOrder(tree, output);
+    // BTree_printInOrder(tree, output);
+
     BTree_destroy(tree);
-
+    fclose(input);
+    fclose(output);
+    
     return 0;
 }
