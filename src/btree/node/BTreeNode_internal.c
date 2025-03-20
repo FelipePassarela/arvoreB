@@ -66,12 +66,11 @@ void BTreeNode_splitChild(BTreeNode *parent, int splitIndex, BTreeNode *child)
 {
     int order = BTreeNode_getOrder(parent);
     int mid = order - 1;
+    int midKey = BTreeNode_getKeyAt(child, mid);
+    int midValue = BTreeNode_getValueAt(child, mid);
 
     BTreeNode *newChild = BTreeNode_create(order, BTreeNode_isLeaf(child));
     BTreeNode_setNumKeys(newChild, mid);
-
-    int midKey = BTreeNode_getKeyAt(child, mid);
-    int midValue = BTreeNode_getValueAt(child, mid);
     
     // Copy upper half of keys to new child
     for (int pos = 0; pos < mid; pos++)
