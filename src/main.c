@@ -3,9 +3,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include "BTree.h"
-#include "BTreeNode.h"
-#include "Queue.h"
+#include "btree/BTree.h"
+#include "utils/Queue.h"
 
 int main(int argc, char *argv[])
 {
@@ -94,8 +93,8 @@ int main(int argc, char *argv[])
         }
     }
 
-    fprintf(output, "\n-- ARVORE B\n");
-    BTree_printLevelOrder(tree, output);
+    // fprintf(output, "\n-- ARVORE B\n");
+    // BTree_printLevelOrder(tree, output);
     // BTree_printInOrder(tree, output);
 
     BTree_destroy(tree);

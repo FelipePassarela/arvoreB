@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include "BTree.h"
-#include "BTreeNode.h"
+#include "btree/BTree.h"
+#include "btree/node/BTreeNode.h"
 
 struct BTree
 {
@@ -32,7 +32,7 @@ bool BTree_search(BTree *tree, int key)
 
 void BTree_remove(BTree *tree, int key)
 {
-    tree->root = BTreeNode_delete(tree->root, key);
+    tree->root = BTreeNode_remove(tree->root, key);
     tree->numKeys--;
 }
 
@@ -45,6 +45,7 @@ void BTree_printInOrder(BTree *tree, FILE* outputFile)
 void BTree_destroy(BTree *tree)
 {
     BTreeNode_destroy(tree->root);
+    free(tree);
 }
 
 void BTree_printPreOrder(BTree *tree)
@@ -55,11 +56,11 @@ void BTree_printPreOrder(BTree *tree)
 
 void BTree_printLevelOrder(BTree *tree, FILE* outputFile)
 {
-    Queue *nodes = BTree_getNodes(tree);
     int level = 0;
+    Queue *nodes = BTreeNode_getLevelOrder(tree->root, tree->numKeys);
+
     while (!Queue_isEmpty(nodes))
     {
-        
         BTreeNode *node;
         Queue_dequeue(nodes, &node);
         if (BTreeNode_getLevel(node) > level)
@@ -73,14 +74,11 @@ void BTree_printLevelOrder(BTree *tree, FILE* outputFile)
         {
             if (i == 0) fprintf(outputFile, "[");
             fprintf(outputFile, "key: %d, ", keys[i]);
-            if (i == BTreeNode_getNumKeys(node) - 1) fprintf(outputFile, "]");
+            bool lastIteration = (i == BTreeNode_getNumKeys(node) - 1);
+            if (lastIteration) fprintf(outputFile, "]");
         }
     }
     fprintf(outputFile, "\n");
     Queue_destroy(nodes);
 }
 
-Queue* BTree_getNodes(BTree* tree)
-{
-    return BTreeNode_getNodes(tree->root, tree->numKeys);
-}
