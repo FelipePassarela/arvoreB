@@ -43,8 +43,10 @@ test: all
 	@diff -r test/output/ test/output_corretos/ || (echo "Teste falhou!" && exit 1)
 
 test_gerados: all
-	@rm -rf test/output
-	@mkdir -p test/output
+	@rm -rf test/output test/input_gerados test/output_gerados
+	@mkdir -p test/output test/input_gerados test/output_gerados
+	@echo "Gerando casos de teste..."
+	@python3 scripts/generate_test_files.py
 	@echo "Executando casos de teste gerados..."
 	@for file in test/input_gerados/caso_teste_*.txt; do \
 		base=$$(basename $$file .txt); \
