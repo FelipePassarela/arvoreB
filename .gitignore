@@ -4,7 +4,6 @@ build/
 cmake-build-debug/
 bin/
 build/
-input/
 output/
 output_corretos/
 test/output_gerados
