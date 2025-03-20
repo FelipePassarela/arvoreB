@@ -1,6 +1,7 @@
 - Criar funções de escrita e leitura em disco para salvar o binário
 - Documentar o código
 - Consertar segfault na remoção
+- Botar o nome e matrícula nos arquivos
 - Implementar busca binária (se der tempo)
 - Encapsular chave e valor em um struct (se der tempo)
 - Modularizar o header BTreeNode_internal.h (se der tempo)
