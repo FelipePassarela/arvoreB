@@ -8,7 +8,7 @@ BTreeNode *BTreeNode_search(BTreeNode *root, int keyToFind)
     int currentIndex = 0;
     int numKeys = BTreeNode_getNumKeys(root);
 
-    // TODO: Implementate binary search
+    // TODO: Implement binary search
     while (currentIndex < numKeys && keyToFind > BTreeNode_getKeyAt(root, currentIndex)) 
     {
         currentIndex++;
