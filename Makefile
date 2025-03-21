@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS =  -std=c11 -Wall -Wextra -Iinclude -lm -g
+CFLAGS =  -std=c11 -Wall -Wextra -Iinclude -g
 SRC_DIR = src
 OBJ_DIR = build
 BIN_DIR = bin
@@ -20,7 +20,7 @@ all: $(TARGET)
 
 $(TARGET): $(OBJ)
 	@mkdir -p $(BIN_DIR)
-	$(CC) $(CFLAGS) $^ -o $@
+	$(CC) $(CFLAGS) $^ -o $@  -lm
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 	@mkdir -p $(dir $@)
