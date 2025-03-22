@@ -1,4 +1,6 @@
+// Fábio Henrique Pascoal - 2024102901
 // Felipe dos Santos Passarela - 2023100256
+// Lucas Alexandre Flaneto de Queiroz - 2021101921
 
 #include "btree/node/BTreeNode.h"
 #include "btree/node/BTreeNode_internal.h"
@@ -45,7 +47,7 @@ void BTreeNode_insertNonFull(BTreeNode *node, int keyToInsert, int valueToInsert
             return;
         }
         currentIndex++;
-        BTreeNode *targetChild = BTreeNode_getChildAt(node, currentIndex);
+        BTreeNode *targetChild = BTreeNode_getChildPosAt(node, currentIndex);
 
         // Handle child split if necessary
         if (BTreeNode_isFull(targetChild))

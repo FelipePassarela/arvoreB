@@ -1,6 +1,9 @@
+// Fábio Henrique Pascoal - 2024102901
 // Felipe dos Santos Passarela - 2023100256
+// Lucas Alexandre Flaneto de Queiroz - 2021101921
 
 #include <assert.h>
+#include <stdio.h>
 #include "btree/node/BTreeNode.h"
 #include "btree/node/BTreeNode_internal.h"
 
@@ -8,30 +11,27 @@ struct BTreeNode
 {
     int order;
     int numKeys;
+    int level;
+    int nodePos;        // Node's position at the tree considering a level order traversal
     int *keys;
     int *values;
-    BTreeNode **children;
+    int *children;
     bool isLeaf;
-    int level;
 };
 
-BTreeNode *BTreeNode_create(int order, bool isLeaf)
+BTreeNode *BTreeNode_create(int order, int nodePos, bool isLeaf)
 {
     assert(order >= 2 && "Order must be at least 2");
     
     BTreeNode *node = (BTreeNode *)malloc(sizeof(BTreeNode));
-    node->keys = (int *)malloc((2 * order - 1) * sizeof(int));
-    node->values = (int *)malloc((2 * order - 1) * sizeof(int));
-    node->children = (BTreeNode **)malloc((2 * order) * sizeof(BTreeNode *));
+    node->keys = (int *)malloc((order - 1) * sizeof(int));
+    node->values = (int *)malloc((order - 1) * sizeof(int));
+    node->children = (int *)calloc(order, sizeof(int));
     node->order = order;
     node->numKeys = 0;
     node->level = 0;
+    node->nodePos = nodePos;
     node->isLeaf = isLeaf;
-
-    for (int i = 0; i < 2 * order; i++) 
-    {
-        node->children[i] = NULL;
-    }
 
     return node;
 }
@@ -40,21 +40,6 @@ void BTreeNode_destroy(BTreeNode *node)
 {
     if (node == NULL) return;
 
-    for (int i = 0; i < node->numKeys; i++)
-    {
-        BTreeNode_destroy(node->children[i]);
-    }
-
-    BTreeNode_destroy(node->children[node->numKeys]);
-    free(node->keys);
-    free(node->values);
-    free(node->children);
-    free(node);
-}
-
-void BTreeNode_destroyOnly(BTreeNode *node)
-{
-    if (node == NULL) return;
     free(node->keys);
     free(node->values);
     free(node->children);
@@ -123,14 +108,14 @@ const int *BTreeNode_getKeys(BTreeNode *node)
     return node->keys;
 }
 
-BTreeNode *BTreeNode_getChildAt(BTreeNode *node, int i) 
+int BTreeNode_getChildPosAt(BTreeNode *node, int i) 
 {
     assert(node && "Node cannot be NULL");
     assert(i >= 0 && i <= node->numKeys && "Index out of bounds");
     return node->children[i];
 }
 
-BTreeNode **BTreeNode_getChildren(BTreeNode *node) 
+int *BTreeNode_getChildrenPos(BTreeNode *node) 
 {
     assert(node && "Node cannot be NULL");
     return node->children;
@@ -164,12 +149,57 @@ void BTreeNode_setValueAt(BTreeNode *node, int i, int value)
     node->values[i] = value; 
 }
 
-BTreeNode *BTreeNode_setChildAt(BTreeNode *node, int i, BTreeNode *child)
+void BTreeNode_setChildPosAt(BTreeNode *node, int i, int childPos)
 {
     assert(node && "Node cannot be NULL");
     assert(i >= 0 && i < (2 * node->order) && "Index out of bounds");
     
-    BTreeNode *old = node->children[i];
-    node->children[i] = child;
-    return old;
+    node->children[i] = childPos;
+}
+
+void disk_write(FILE *file, BTreeNode *node)
+{
+    if (file == NULL || node == NULL) return;
+
+    // Calculate the size of a single node in bytes.
+    int nodeSize = sizeof(int) * (3 + 2 * (node->order - 1) + node->order) + sizeof(bool);
+    // Move the file pointer to the correct position for writing the node.
+    fseek(file, node->nodePos * nodeSize, SEEK_SET);
+
+    // Write the node's data to the file.  Write in the same order as the struct.
+    fwrite(&node->order, sizeof(int), 1, file);
+    fwrite(&node->numKeys, sizeof(int), 1, file);
+    fwrite(&node->level, sizeof(int), 1, file);
+    fwrite(&node->isLeaf, sizeof(bool), 1, file);
+    fwrite(&node->nodePos, sizeof(int), 1, file);
+    fwrite(node->keys, sizeof(int), node->order - 1, file);
+    fwrite(node->values, sizeof(int), node->order - 1, file);
+    fwrite(node->children, sizeof(int), node->order, file);
+
+    fflush(file); // Ensure data is written to the file.
+}
+
+BTreeNode *disk_read(FILE *file, int nodePos, int order)
+{
+    if (file == NULL) return NULL;
+    
+    // Calculate the size of a single node in bytes.
+    int nodeSize = sizeof(int) * (4 + 2 * (order - 1) + order) + sizeof(bool);
+    // Move the file pointer to the position of the node to be read.
+    fseek(file, nodePos * nodeSize, SEEK_SET);
+
+    // Allocate memory for a new BTreeNode.
+    BTreeNode *node = BTreeNode_create(order, nodePos, false); //isLeaf will be read from file
+
+    // Read the node's data from the file.  Read in the same order as written.
+    fread(&node->order, sizeof(int), 1, file);
+    fread(&node->numKeys, sizeof(int), 1, file);
+    fread(&node->level, sizeof(int), 1, file);
+    fread(&node->isLeaf, sizeof(bool), 1, file);
+    fread(&node->nodePos, sizeof(int), 1, file);
+    fread(node->keys, sizeof(int), order - 1, file);
+    fread(node->values, sizeof(int), order - 1, file);
+    fread(node->children, sizeof(int), order, file);
+
+    return node;
 }

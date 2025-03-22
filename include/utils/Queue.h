@@ -1,4 +1,6 @@
+// Fábio Henrique Pascoal - 2024102901
 // Felipe dos Santos Passarela - 2023100256
+// Lucas Alexandre Flaneto de Queiroz - 2021101921
 
 #ifndef QUEUE_H
 #define QUEUE_H

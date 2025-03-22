@@ -1,20 +1,26 @@
+// Fábio Henrique Pascoal - 2024102901
 // Felipe dos Santos Passarela - 2023100256
+// Lucas Alexandre Flaneto de Queiroz - 2021101921
 
 #ifndef BTREE_NODE_H
 #define BTREE_NODE_H
 
 #include <stdbool.h>
+#include <stdio.h>
 #include "btree/node/BTreeNode.h"
 #include "utils/Queue.h"
 
 typedef struct BTreeNode BTreeNode;
 
-BTreeNode *BTreeNode_create(int order, bool isLeaf);
+BTreeNode *BTreeNode_create(int order, int nodePos, bool isLeaf);
 void BTreeNode_destroy(BTreeNode *node);
 
 BTreeNode *BTreeNode_search(BTreeNode *root, int key);
 BTreeNode *BTreeNode_insert(BTreeNode *node, int key, int value);
 BTreeNode *BTreeNode_remove(BTreeNode *root, int key);
+
+void disk_write(FILE *file, BTreeNode *node);
+BTreeNode *disk_read(FILE *file, int nodePos, int order);
 
 bool BTreeNode_isLeaf(BTreeNode *node);
 bool BTreeNode_isFull(BTreeNode *node);

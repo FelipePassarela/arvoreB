@@ -1,12 +1,20 @@
+// Fábio Henrique Pascoal - 2024102901
 // Felipe dos Santos Passarela - 2023100256
+// Lucas Alexandre Flaneto de Queiroz - 2021101921
 
 #include <stdlib.h>
 #include <stdio.h>
 #include "btree/BTree.h"
 #include "btree/node/BTreeNode.h"
 
+#define FILENAME "binary.exe"
+#define BINARY_WRITE "wb"
+#define BINARY_READ "rb"
+
 struct BTree
 {
+    FILE *binaryFileWrite;
+    FILE *binaryFileRead;
     BTreeNode *root;
     int order;
     unsigned numKeys;
@@ -15,9 +23,13 @@ struct BTree
 BTree *BTree_create(int order)
 {
     BTree *tree = (BTree *)malloc(sizeof(BTree));
-    tree->root = BTreeNode_create(order, true);
+
+    tree->binaryFileWrite = fopen(FILENAME, BINARY_WRITE);
+    tree->binaryFileRead = fopen(FILENAME, BINARY_READ);
+    tree->root = BTreeNode_create(order, 0, true);
     tree->order = order;
     tree->numKeys = 0;
+    
     return tree;
 }
 
@@ -47,6 +59,8 @@ void BTree_printInOrder(BTree *tree, FILE* outputFile)
 void BTree_destroy(BTree *tree)
 {
     BTreeNode_destroy(tree->root);
+    fclose(tree->binaryFileRead);
+    fclose(tree->binaryFileWrite);
     free(tree);
 }
 
