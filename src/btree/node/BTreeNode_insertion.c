@@ -1,13 +1,16 @@
 // Felipe dos Santos Passarela - 2023100256
+// Fábio Henrique Pascoal - 2024102901
+// Lucas Alexandre Flaneto de Queiroz - 2021101921
 
 #include "btree/node/BTreeNode.h"
-#include "btree/node/BTreeNode_internal.h"
+#include "btree/node/BTreeNode_utils.h"
+#include "btree/node/BTreeNode_insertion.h"
 
 void BTreeNode_insertNonFull(BTreeNode *node, int keyToInsert, int valueToInsert)
 {
     // Start from rightmost element
     int currentIndex = BTreeNode_getNumKeys(node) - 1;
-    
+
     if (BTreeNode_isLeaf(node))
     {
         while (currentIndex >= 0 && BTreeNode_getKeyAt(node, currentIndex) > keyToInsert)
@@ -19,7 +22,7 @@ void BTreeNode_insertNonFull(BTreeNode *node, int keyToInsert, int valueToInsert
             BTreeNode_setValueAt(node, currentIndex + 1, prevValue);
             currentIndex--;
         }
-        
+
         // Update value if key exists, otherwise insert new key-value pair
         if (currentIndex >= 0 && BTreeNode_getKeyAt(node, currentIndex) == keyToInsert)
         {
@@ -70,7 +73,7 @@ void BTreeNode_splitChild(BTreeNode *parent, int splitIndex, BTreeNode *child)
 
     BTreeNode *newChild = BTreeNode_create(order, BTreeNode_isLeaf(child));
     BTreeNode_setNumKeys(newChild, mid);
-    
+
     // Copy upper half of keys to new child
     for (int pos = 0; pos < mid; pos++)
     {
@@ -79,7 +82,7 @@ void BTreeNode_splitChild(BTreeNode *parent, int splitIndex, BTreeNode *child)
         BTreeNode_setKeyAt(newChild, pos, key);
         BTreeNode_setValueAt(newChild, pos, value);
     }
-    
+
     // If internal node, redistribute child pointers
     if (!BTreeNode_isLeaf(child))
     {
@@ -90,15 +93,15 @@ void BTreeNode_splitChild(BTreeNode *parent, int splitIndex, BTreeNode *child)
         }
     }
     BTreeNode_setNumKeys(child, mid);
-    
+
     // Make space in parent for new key and child pointer
-    for (int pos = BTreeNode_getNumKeys(parent); pos >= splitIndex + 1; pos--) 
+    for (int pos = BTreeNode_getNumKeys(parent); pos >= splitIndex + 1; pos--)
     {
         BTreeNode *childAtIndex = BTreeNode_getChildAt(parent, pos);
         BTreeNode_setChildAt(parent, pos + 1, childAtIndex);
     }
     BTreeNode_setChildAt(parent, splitIndex + 1, newChild);
-    
+
     for (int pos = BTreeNode_getNumKeys(parent) - 1; pos >= splitIndex; pos--)
     {
         int prevKey = BTreeNode_getKeyAt(parent, pos);
@@ -106,7 +109,7 @@ void BTreeNode_splitChild(BTreeNode *parent, int splitIndex, BTreeNode *child)
         BTreeNode_setKeyAt(parent, pos + 1, prevKey);
         BTreeNode_setValueAt(parent, pos + 1, prevValue);
     }
-    
+
     // Move middle key to parent and update counts
     BTreeNode_setKeyAt(parent, splitIndex, midKey);
     BTreeNode_setValueAt(parent, splitIndex, midValue);

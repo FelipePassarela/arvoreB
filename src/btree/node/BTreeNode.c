@@ -1,8 +1,9 @@
 // Felipe dos Santos Passarela - 2023100256
+// Fábio Henrique Pascoal - 2024102901
+// Lucas Alexandre Flaneto de Queiroz - 2021101921
 
 #include <assert.h>
 #include "btree/node/BTreeNode.h"
-#include "btree/node/BTreeNode_internal.h"
 
 struct BTreeNode 
 {

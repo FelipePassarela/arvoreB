@@ -1,25 +1,52 @@
 // Felipe dos Santos Passarela - 2023100256
+// Fábio Henrique Pascoal - 2024102901
+// Lucas Alexandre Flaneto de Queiroz - 2021101921
 
 #include "btree/node/BTreeNode.h"
-#include "btree/node/BTreeNode_internal.h"
+#include "btree/node/BTreeNode_removal.h"
+#include "btree/node/BTreeNode_utils.h"
 
-void BTreeNode_removeInternal(BTreeNode *node, int keyToRemove) 
+int BTreeNode_getPredecessor(BTreeNode *parent, int childIndex)
+{
+    // Keep moving to the rightmost child until reaching a leaf
+    BTreeNode *current = BTreeNode_getChildAt(parent, childIndex);
+    while (!BTreeNode_isLeaf(current))
+    {
+        int lastChildIndex = BTreeNode_getNumKeys(current);
+        current = BTreeNode_getChildAt(current, lastChildIndex);
+    }
+    int lastKeyIndex = BTreeNode_getNumKeys(current) - 1;
+    return BTreeNode_getKeyAt(current, lastKeyIndex);
+}
+
+int BTreeNode_getSuccessor(BTreeNode *parent, int childIndex) 
+{
+    // Keep moving to the leftmost child until reaching a leaf
+    BTreeNode *current = BTreeNode_getChildAt(parent, childIndex + 1);
+    while (!BTreeNode_isLeaf(current))
+    {
+        current = BTreeNode_getChildAt(current, 0);
+    }
+    return BTreeNode_getKeyAt(current, 0);
+}
+
+void BTreeNode_removeInternal(BTreeNode *node, int keyToRemove)
 {
     int currentIndex = 0;
     int numKeys = BTreeNode_getNumKeys(node);
     int minKeys = BTreeNode_getOrder(node) - 1;
 
     // Find the index of the key or where it should be
-    while (currentIndex < numKeys && BTreeNode_getKeyAt(node, currentIndex) < keyToRemove) 
+    while (currentIndex < numKeys && BTreeNode_getKeyAt(node, currentIndex) < keyToRemove)
     {
         currentIndex++;
     }
 
     bool keyIsPresentOnNode = (currentIndex < numKeys && BTreeNode_getKeyAt(node, currentIndex) == keyToRemove);
-    if (keyIsPresentOnNode) 
+    if (keyIsPresentOnNode)
     {
         // First case: If the node is a leaf, remove the key by shifting the elements
-        if (BTreeNode_isLeaf(node)) 
+        if (BTreeNode_isLeaf(node))
         {
             for (int pos = currentIndex; pos < numKeys - 1; pos++)
             {
@@ -29,8 +56,8 @@ void BTreeNode_removeInternal(BTreeNode *node, int keyToRemove)
                 BTreeNode_setValueAt(node, pos, nextValue);
             }
             BTreeNode_decrementNumKeys(node, 1);
-        } 
-        else 
+        }
+        else
         {
             // Second case: If the node is an internal, handle the left and right children
             BTreeNode *leftChild = BTreeNode_getChildAt(node, currentIndex);
@@ -38,31 +65,31 @@ void BTreeNode_removeInternal(BTreeNode *node, int keyToRemove)
             bool leftHasExcessKeys = BTreeNode_getNumKeys(leftChild) > minKeys;
             bool rightHasExcessKeys = BTreeNode_getNumKeys(rightChild) > minKeys;
 
-            if (leftHasExcessKeys) 
+            if (leftHasExcessKeys)
             {
                 int predecessorKey = BTreeNode_getPredecessor(node, currentIndex);
                 BTreeNode_setKeyAt(node, currentIndex, predecessorKey);
                 BTreeNode_setValueAt(node, currentIndex, predecessorKey); // TODO: Set value properly
                 BTreeNode_removeInternal(leftChild, predecessorKey);
-            } 
-            else if (rightHasExcessKeys) 
+            }
+            else if (rightHasExcessKeys)
             {
                 int successorKey = BTreeNode_getSuccessor(node, currentIndex);
                 BTreeNode_setKeyAt(node, currentIndex, successorKey);
                 BTreeNode_setValueAt(node, currentIndex, successorKey); // TODO: Set value properly
                 BTreeNode_removeInternal(rightChild, successorKey);
-            } 
-            else 
+            }
+            else
             {
                 // Merge the two child nodes and remove the key in the merge
                 BTreeNode_mergeChild(node, currentIndex);
                 BTreeNode_removeInternal(leftChild, keyToRemove);
             }
         }
-    } 
-    else 
+    }
+    else
     {
-        // If the key is not in the node and the node is a leaf, 
+        // If the key is not in the node and the node is a leaf,
         if (BTreeNode_isLeaf(node)) return; // then it is not present in the tree
 
         BTreeNode *child = BTreeNode_getChildAt(node, currentIndex);
@@ -70,7 +97,7 @@ void BTreeNode_removeInternal(BTreeNode *node, int keyToRemove)
         bool notFilled = (childNumKeys < minKeys);
         bool isLastKey = (currentIndex == numKeys);
         bool shouldUsePreviousChild = (isLastKey && currentIndex > numKeys);
-        
+
         if (notFilled)
         {
             BTreeNode_fill(node, currentIndex);
@@ -88,7 +115,7 @@ void BTreeNode_removeInternal(BTreeNode *node, int keyToRemove)
     }
 }
 
-void BTreeNode_fill(BTreeNode *node, int childIndex) 
+void BTreeNode_fill(BTreeNode *node, int childIndex)
 {
     int minKeys = BTreeNode_getOrder(node) - 1;
     int numKeys = BTreeNode_getNumKeys(node);
@@ -107,14 +134,14 @@ void BTreeNode_fill(BTreeNode *node, int childIndex)
         bool nextCanBorrow = BTreeNode_getNumKeys(nextSibling) > minKeys;
         if (nextCanBorrow) BTreeNode_borrowFromNext(node, childIndex);
     }
-    else 
+    else
     {
         if (hasNextSibling) BTreeNode_mergeChild(node, childIndex);
         else                BTreeNode_mergeChild(node, childIndex - 1);
     }
 }
 
-void BTreeNode_borrowFromPrev(BTreeNode *parent, int targetIndex) 
+void BTreeNode_borrowFromPrev(BTreeNode *parent, int targetIndex)
 {
     BTreeNode *targetChild = BTreeNode_getChildAt(parent, targetIndex);
     BTreeNode *leftSibling = BTreeNode_getChildAt(parent, targetIndex - 1);
@@ -127,9 +154,9 @@ void BTreeNode_borrowFromPrev(BTreeNode *parent, int targetIndex)
     }
 
     // If not leaf, shift all child pointers to right and transfer last child from sibling
-    if (!BTreeNode_isLeaf(targetChild)) 
+    if (!BTreeNode_isLeaf(targetChild))
     {
-        for (int pos = BTreeNode_getNumKeys(targetChild); pos >= 0; pos--) 
+        for (int pos = BTreeNode_getNumKeys(targetChild); pos >= 0; pos--)
         {
             BTreeNode *prevChild = BTreeNode_getChildAt(targetChild, pos);
             BTreeNode_setChildAt(targetChild, pos + 1, prevChild);
@@ -143,7 +170,7 @@ void BTreeNode_borrowFromPrev(BTreeNode *parent, int targetIndex)
     int parentValue = BTreeNode_getValueAt(parent, targetIndex - 1);
     BTreeNode_setKeyAt(targetChild, 0, parentKey);
     BTreeNode_setValueAt(targetChild, 0, parentValue);
-  
+
     // Move the sibling's last key up to the parent
     int sibNumKeys = BTreeNode_getNumKeys(leftSibling) - 1;
     int lastSibKey = BTreeNode_getKeyAt(leftSibling, sibNumKeys);
@@ -155,7 +182,7 @@ void BTreeNode_borrowFromPrev(BTreeNode *parent, int targetIndex)
     BTreeNode_decrementNumKeys(leftSibling, 1);
 }
 
-void BTreeNode_borrowFromNext(BTreeNode *parent, int targetIndex) 
+void BTreeNode_borrowFromNext(BTreeNode *parent, int targetIndex)
 {
     BTreeNode *targetChild = BTreeNode_getChildAt(parent, targetIndex);
     BTreeNode *rightSibling = BTreeNode_getChildAt(parent, targetIndex + 1);
@@ -167,7 +194,7 @@ void BTreeNode_borrowFromNext(BTreeNode *parent, int targetIndex)
     BTreeNode_setValueAt(targetChild, BTreeNode_getNumKeys(targetChild), parentValue);
 
     // If it isn't a leaf, move the first child of sibling
-    if (!BTreeNode_isLeaf(targetChild)) 
+    if (!BTreeNode_isLeaf(targetChild))
     {
         BTreeNode *firstSibChild = BTreeNode_getChildAt(rightSibling, 0);
         BTreeNode_setChildAt(targetChild, BTreeNode_getNumKeys(targetChild) + 1, firstSibChild);
@@ -202,7 +229,7 @@ void BTreeNode_borrowFromNext(BTreeNode *parent, int targetIndex)
     BTreeNode_decrementNumKeys(rightSibling, 1);
 }
 
-void BTreeNode_mergeChild(BTreeNode *parent, int targetIndex) 
+void BTreeNode_mergeChild(BTreeNode *parent, int targetIndex)
 {
     BTreeNode *leftChild = BTreeNode_getChildAt(parent, targetIndex);
     BTreeNode *rightChild = BTreeNode_getChildAt(parent, targetIndex + 1);
@@ -224,7 +251,7 @@ void BTreeNode_mergeChild(BTreeNode *parent, int targetIndex)
     }
 
     // If nodes aren't leaves, transfer child pointers
-    if (!BTreeNode_isLeaf(leftChild)) 
+    if (!BTreeNode_isLeaf(leftChild))
     {
         for (int pos = 0; pos <= BTreeNode_getNumKeys(rightChild); pos++)
         {
@@ -248,33 +275,9 @@ void BTreeNode_mergeChild(BTreeNode *parent, int targetIndex)
         BTreeNode *nextChild = BTreeNode_getChildAt(parent, pos);
         BTreeNode_setChildAt(parent, pos - 1, nextChild);
     }
-    
+
     BTreeNode_incrementNumKeys(leftChild, BTreeNode_getNumKeys(rightChild) + 1);
     BTreeNode_decrementNumKeys(parent, 1);
 
     BTreeNode_destroyOnly(rightChild);
-}
-
-int BTreeNode_getPredecessor(BTreeNode *parent, int childIndex) 
-{
-    // Keep moving to the rightmost child until reaching a leaf
-    BTreeNode *current = BTreeNode_getChildAt(parent, childIndex);
-    while (!BTreeNode_isLeaf(current))
-    {
-        int lastChildIndex = BTreeNode_getNumKeys(current);
-        current = BTreeNode_getChildAt(current, lastChildIndex);
-    }
-    int lastKeyIndex = BTreeNode_getNumKeys(current) - 1;
-    return BTreeNode_getKeyAt(current, lastKeyIndex);
-}
-
-int BTreeNode_getSuccessor(BTreeNode *parent, int childIndex) 
-{
-    // Keep moving to the leftmost child until reaching a leaf
-    BTreeNode *current = BTreeNode_getChildAt(parent, childIndex + 1);
-    while (!BTreeNode_isLeaf(current))
-    {
-        current = BTreeNode_getChildAt(current, 0);
-    }
-    return BTreeNode_getKeyAt(current, 0);
 }

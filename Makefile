@@ -4,7 +4,7 @@ SRC_DIR = src
 OBJ_DIR = build
 BIN_DIR = bin
 
-BTREE_SRC = $(wildcard $(SRC_DIR)/btree/node/*.c) $(wildcard $(SRC_DIR)/btree/*.c)
+BTREE_SRC = $(wildcard $(SRC_DIR)/btree/node/*.c) $(wildcard $(SRC_DIR)/btree/*.c) $(wildcard $(SRC_DIR)/btree/pairs/*.c)
 UTILS_SRC = $(wildcard $(SRC_DIR)/utils/*.c)
 MAIN_SRC = $(SRC_DIR)/main.c
 
@@ -20,7 +20,7 @@ all: $(TARGET)
 
 $(TARGET): $(OBJ)
 	@mkdir -p $(BIN_DIR)
-	$(CC) $(CFLAGS) $^ -o $@  -lm
+	@$(CC) $(CFLAGS) $^ -o $@  -lm
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 	@mkdir -p $(dir $@)

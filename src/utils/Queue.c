@@ -1,4 +1,6 @@
 // Felipe dos Santos Passarela - 2023100256
+// Fábio Henrique Pascoal - 2024102901
+// Lucas Alexandre Flaneto de Queiroz - 2021101921
 
 #include <stdio.h>
 #include <stdlib.h>

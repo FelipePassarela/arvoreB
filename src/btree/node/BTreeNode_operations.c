@@ -1,21 +1,25 @@
 // Felipe dos Santos Passarela - 2023100256
+// Fábio Henrique Pascoal - 2024102901
+// Lucas Alexandre Flaneto de Queiroz - 2021101921
 
 #include "btree/node/BTreeNode.h"
-#include "btree/node/BTreeNode_internal.h"
+#include "btree/node/BTreeNode_removal.h"
+#include "btree/node/BTreeNode_utils.h"
+#include "btree/node/BTreeNode_insertion.h"
 
-BTreeNode *BTreeNode_search(BTreeNode *root, int keyToFind)
+NodeIndexPair *BTreeNode_search(BTreeNode *root, int keyToFind)
 {
     int currentIndex = 0;
     int numKeys = BTreeNode_getNumKeys(root);
 
     // TODO: Implement binary search
-    while (currentIndex < numKeys && keyToFind > BTreeNode_getKeyAt(root, currentIndex)) 
+    while (currentIndex < numKeys && keyToFind > BTreeNode_getKeyAt(root, currentIndex))
     {
         currentIndex++;
     }
-    
+
     bool keyFound = (currentIndex < numKeys && keyToFind == BTreeNode_getKeyAt(root, currentIndex));
-    if (keyFound) return root;
+    if (keyFound) return NodeIndexPair_create(root, currentIndex);
 
     if (BTreeNode_isLeaf(root)) return NULL;
 
@@ -43,10 +47,10 @@ BTreeNode* BTreeNode_insert(BTreeNode *node, int key, int value)
     }
 }
 
-BTreeNode* BTreeNode_remove(BTreeNode *root, int key) 
+BTreeNode* BTreeNode_remove(BTreeNode *root, int key)
 {
     BTreeNode_removeInternal(root, key);
-    if (BTreeNode_isEmpty(root)) 
+    if (BTreeNode_isEmpty(root))
     {
         BTreeNode* newRoot = BTreeNode_isLeaf(root) ? NULL : BTreeNode_getChildAt(root, 0);
         BTreeNode_destroyOnly(root);

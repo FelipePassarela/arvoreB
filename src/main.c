@@ -1,10 +1,10 @@
 // Felipe dos Santos Passarela - 2023100256
+// Fábio Henrique Pascoal - 2024102901
+// Lucas Alexandre Flaneto de Queiroz - 2021101921
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <math.h>
 #include "btree/BTree.h"
-#include "utils/Queue.h"
 
 int main(int argc, char *argv[])
 {
@@ -32,14 +32,14 @@ int main(int argc, char *argv[])
     int order, numOps;
     if (fscanf(input, "%d\n%d\n", &order, &numOps) != 2)
     {
-        fprintf(stderr, "Erro: formato de entrada inválido\n");
+        fprintf(stderr, "Error: Invalid input format\n");
         fclose(input);
         fclose(output);
         return 1;
     }
 
-    int t = ceil(order / 2) + 1;
-    BTree *tree = BTree_create(t);
+    int convertedOrder = ceil(order / 2) + 1;
+    BTree *tree = BTree_create(convertedOrder);
 
     for (int i = 0; i < numOps; i++)
     {
@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
         
         if (fgets(line, sizeof(line), input) == NULL)
         {
-            fprintf(stderr, "Erro: fim inesperado do arquivo\n");
+            fprintf(stderr, "Error: unexpected end of file\n");
             break;
         }
 
@@ -80,7 +80,7 @@ int main(int argc, char *argv[])
                 int key;
                 if (sscanf(line, "B %d", &key) == 1)
                 {
-                    bool found = BTree_search(tree, key);
+                    bool found = BTree_contains(tree, key);
                     fprintf(output, "%s\n", found ? 
                         "O REGISTRO ESTA NA ARVORE!" : 
                         "O REGISTRO NAO ESTA NA ARVORE!");
@@ -88,14 +88,13 @@ int main(int argc, char *argv[])
                 break;
             }
             default:
-                fprintf(stderr, "Operação desconhecida: %c\n", op);
+                fprintf(stderr, "Unknowns operation: %c\n", op);
                 break;
         }
     }
 
-    // fprintf(output, "\n-- ARVORE B\n");
-    // BTree_printLevelOrder(tree, output);
-    // BTree_printInOrder(tree, output);
+    fprintf(output, "\n-- ARVORE B\n");
+    BTree_printLevelOrder(tree, output);
 
     BTree_destroy(tree);
     fclose(input);

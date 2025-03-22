@@ -1,9 +1,13 @@
 // Felipe dos Santos Passarela - 2023100256
+// Fábio Henrique Pascoal - 2024102901
+// Lucas Alexandre Flaneto de Queiroz - 2021101921
 
 #include <stdlib.h>
 #include <stdio.h>
 #include "btree/BTree.h"
 #include "btree/node/BTreeNode.h"
+#include "btree/node/BTreeNode_utils.h"
+#include "btree/pairs/NodeIndexPair.h"
 
 struct BTree
 {
@@ -27,9 +31,17 @@ void BTree_insert(BTree *tree, int key, int value)
     tree->numKeys++;
 }
 
-bool BTree_search(BTree *tree, int key)
+int BTree_search(BTree *tree, int key)
 {
-    return BTreeNode_search(tree->root, key) != NULL;
+    NodeIndexPair *nodeIndex = BTreeNode_search(tree->root, key);
+    if (nodeIndex == NULL) return NULL_VALUE;
+
+    BTreeNode *foundNode = NodeIndexPair_getNode(nodeIndex);
+    int keyIndex = NodeIndexPair_getIndex(nodeIndex);
+    int foundValue = BTreeNode_getValueAt(foundNode, keyIndex);
+
+    NodeIndexPair_destroy(nodeIndex);
+    return foundValue;
 }
 
 void BTree_remove(BTree *tree, int key)
@@ -38,22 +50,15 @@ void BTree_remove(BTree *tree, int key)
     tree->numKeys--;
 }
 
-void BTree_printInOrder(BTree *tree, FILE* outputFile)
+bool BTree_contains(BTree* tree, int key)
 {
-    BTreeNode_printInOrder(tree->root);
-    printf("\n");
+    return BTree_search(tree, key) != NULL_VALUE;
 }
 
 void BTree_destroy(BTree *tree)
 {
     BTreeNode_destroy(tree->root);
     free(tree);
-}
-
-void BTree_printPreOrder(BTree *tree)
-{
-    BTreeNode_printPreOrder(tree->root, 0);
-    printf("\n");
 }
 
 void BTree_printLevelOrder(BTree *tree, FILE* outputFile)
