@@ -38,8 +38,7 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    int t = ceil(order / 2) + 1;
-    BTree *tree = BTree_create(t);
+    BTree *tree = BTree_create(order);
 
     for (int i = 0; i < numOps; i++)
     {
@@ -62,7 +61,7 @@ int main(int argc, char *argv[])
                 int key, value;
                 if (sscanf(line, "I %d, %d", &key, &value) == 2)
                 {
-                    BTree_insert(tree, key, value);
+                    // BTree_insert(tree, key, value);
                 }
                 break;
             }
@@ -71,7 +70,7 @@ int main(int argc, char *argv[])
                 int key;
                 if (sscanf(line, "R %d", &key) == 1)
                 {
-                    BTree_remove(tree, key);
+                    // BTree_remove(tree, key);
                 }
                 break;
             }

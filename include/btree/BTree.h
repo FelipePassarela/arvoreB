@@ -9,12 +9,12 @@
 typedef struct BTree BTree;
 
 BTree *BTree_create(int order);
-void BTree_destroy(BTree *tree);
-void BTree_insert(BTree *tree, int key, int value);
-bool BTree_search(BTree *tree, int key);
-void BTree_remove(BTree *tree, int key);
-void BTree_printInOrder(BTree *tree, FILE* outputFile);
-void BTree_printPreOrder(BTree *tree);
-void BTree_printLevelOrder(BTree *tree, FILE* outputFile);
+void BTree_destroy(BTree *root);
+
+int BTree_search(BTree *root, int key);
+
+void BTree_printInOrder(BTree *root, FILE* outputFile);
+void BTree_printPreOrder(BTree *root);
+void BTree_printLevelOrder(BTree *root, FILE* outputFile);
 
 #endif //BTREE_H

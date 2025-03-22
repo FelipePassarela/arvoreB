@@ -4,83 +4,49 @@
 #include <stdio.h>
 #include "btree/BTree.h"
 #include "btree/node/BTreeNode.h"
+#include "btree/node/BTreeNode_io.h"
+
+#define BTREE_FILE "btreebinary.txt"
 
 struct BTree
 {
-    BTreeNode *root;
     int order;
-    unsigned numKeys;
+    int numKeys;
+    BTreeNode *root;
+    FILE *btreeFile;
 };
 
 BTree *BTree_create(int order)
 {
-    BTree *tree = (BTree *)malloc(sizeof(BTree));
-    tree->root = BTreeNode_create(order, true);
-    tree->order = order;
-    tree->numKeys = 0;
-    return tree;
+    BTree *root = (BTree *)malloc(sizeof(BTree));
+    root->order = order;
+    root->numKeys = 0;
+    root->root = BTreeNode_create(order, true, 0);
+    root->btreeFile = fopen(BTREE_FILE, "wb");
+    BTreeNode_diskWrite(root->root, root->btreeFile);
+    // TODO: Insert first pair
+    // BTreeNode_insert()
+    // root->numKeys = 1;
+    return root;
 }
 
-void BTree_insert(BTree *tree, int key, int value)
+void BTree_destroy(BTree *root)
 {
-    tree->root = BTreeNode_insert(tree->root, key, value);
-    tree->numKeys++;
+    BTreeNode_destroy(root->root);
+    fclose(root->btreeFile);
+    free(root);
 }
 
-bool BTree_search(BTree *tree, int key)
+int BTree_search(BTree *root, int key)
 {
-    return BTreeNode_search(tree->root, key) != NULL;
+    NodeIndexPair *nodeIndex = BTreeNode_search(key, BTreeNode_getPos(root->root), root->order, root->btreeFile);
+    if (nodeIndex == NULL) return NULL_VALUE;
+
+    BTreeNode *foundNode = NodeIndexPair_getNode(nodeIndex);
+    int keyIndex = NodeIndexPair_getIndex(nodeIndex);
+    int foundValue = BTreeNode_getValueAt(foundNode, keyIndex);
+
+    NodeIndexPair_destroy(nodeIndex);
+    BTreeNode_destroy(foundNode);
+    return foundValue;
 }
-
-void BTree_remove(BTree *tree, int key)
-{
-    tree->root = BTreeNode_remove(tree->root, key);
-    tree->numKeys--;
-}
-
-void BTree_printInOrder(BTree *tree, FILE* outputFile)
-{
-    BTreeNode_printInOrder(tree->root);
-    printf("\n");
-}
-
-void BTree_destroy(BTree *tree)
-{
-    BTreeNode_destroy(tree->root);
-    free(tree);
-}
-
-void BTree_printPreOrder(BTree *tree)
-{
-    BTreeNode_printPreOrder(tree->root, 0);
-    printf("\n");
-}
-
-void BTree_printLevelOrder(BTree *tree, FILE* outputFile)
-{
-    int level = 0;
-    Queue *nodes = BTreeNode_getLevelOrder(tree->root, tree->numKeys);
-
-    while (!Queue_isEmpty(nodes))
-    {
-        BTreeNode *node;
-        Queue_dequeue(nodes, &node);
-        if (BTreeNode_getLevel(node) > level)
-        {
-            level++;
-            fprintf(outputFile, "\n");
-        }
-        
-        const int *keys = BTreeNode_getKeys(node);
-        for (int i = 0; i < BTreeNode_getNumKeys(node); i++)
-        {
-            if (i == 0) fprintf(outputFile, "[");
-            fprintf(outputFile, "key: %d, ", keys[i]);
-            bool lastIteration = (i == BTreeNode_getNumKeys(node) - 1);
-            if (lastIteration) fprintf(outputFile, "]");
-        }
-    }
-    fprintf(outputFile, "\n");
-    Queue_destroy(nodes);
-}
-
