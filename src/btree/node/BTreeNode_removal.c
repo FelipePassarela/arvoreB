@@ -69,14 +69,14 @@ void BTreeNode_removeInternal(BTreeNode *node, int keyToRemove)
             {
                 int predecessorKey = BTreeNode_getPredecessor(node, currentIndex);
                 BTreeNode_setKeyAt(node, currentIndex, predecessorKey);
-                BTreeNode_setValueAt(node, currentIndex, predecessorKey); // TODO: Set value properly
+                BTreeNode_setValueAt(node, currentIndex, predecessorKey);
                 BTreeNode_removeInternal(leftChild, predecessorKey);
             }
             else if (rightHasExcessKeys)
             {
                 int successorKey = BTreeNode_getSuccessor(node, currentIndex);
                 BTreeNode_setKeyAt(node, currentIndex, successorKey);
-                BTreeNode_setValueAt(node, currentIndex, successorKey); // TODO: Set value properly
+                BTreeNode_setValueAt(node, currentIndex, successorKey);
                 BTreeNode_removeInternal(rightChild, successorKey);
             }
             else
